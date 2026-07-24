@@ -1,30 +1,621 @@
 <!DOCTYPE html>
-<html>
+<html lang="ka">
 <head>
-  <base href="/-/">
   <meta charset="UTF-8">
-  <meta content="IE=Edge" http-equiv="X-UA-Encoding">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>რეცეპტების წიგნი</title>
+  
+  <!-- iOS Standalone Web App Meta Tags -->
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="რეცეპტები">
   
-  <title>რეცეპტების წიგნი</title>
-
-  <script src="https://www.gstatic.com/flutter-canvaskit/3.19.0/canvaskit.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/dart/sdk/dart.js" defer></script>
+  <style>
+    :root {
+      --primary: #D32F2F;
+      --bg: #FDFBF7;
+      --card-bg: #FFFFFF;
+      --text-main: #2C3E50;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+    header {
+      background-color: var(--primary);
+      color: white;
+      text-align: center;
+      padding: 16px;
+      font-size: 22px;
+      font-weight: bold;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      position: relative;
+    }
+    .back-btn {
+      position: absolute;
+      left: 16px;
+      top: 16px;
+      background: none;
+      border: none;
+      color: white;
+      font-size: 20px;
+      cursor: pointer;
+      display: none;
+    }
+    main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+    }
+    .card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 16px 20px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      font-size: 18px;
+      font-weight: bold;
+    }
+    .card::after {
+      content: '›';
+      font-size: 28px;
+      color: var(--primary);
+    }
+    nav {
+      height: 65px;
+      background: white;
+      border-top: 1px solid #E0E0E0;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+    }
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: #757575;
+      font-size: 12px;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .nav-item.active {
+      color: var(--primary);
+      font-weight: bold;
+    }
+    .nav-icon {
+      font-size: 22px;
+      margin-bottom: 2px;
+    }
+    /* Detail View */
+    .photo-box {
+      width: 100%;
+      height: 180px;
+      background: #FFF3E0;
+      border: 1.5px dashed #FFB74D;
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      color: #E65100;
+      margin-bottom: 20px;
+    }
+    .section-title {
+      font-size: 24px;
+      font-weight: bold;
+      color: var(--primary);
+      margin-top: 16px;
+      margin-bottom: 12px;
+    }
+    .section-subtitle {
+      font-size: 22px;
+      font-weight: bold;
+      color: var(--text-main);
+      margin-top: 16px;
+      margin-bottom: 8px;
+    }
+    .section-subtitle-red {
+      font-size: 22px;
+      font-weight: bold;
+      color: var(--primary);
+      margin-top: 16px;
+      margin-bottom: 8px;
+    }
+    ul {
+      padding-left: 20px;
+      margin: 0;
+    }
+    li {
+      font-size: 17px;
+      line-height: 1.4;
+      margin-bottom: 8px;
+    }
+    p {
+      font-size: 16px;
+      line-height: 1.5;
+      margin-top: 6px;
+      white-space: pre-line;
+    }
+  </style>
 </head>
-<body style="margin:0; padding:0; background-color:#FDFBF7;">
-  <div id="loading" style="display:flex; justify-content:center; align-items:center; height:100vh; font-family:sans-serif; color:#D32F2F; font-size:20px; font-weight:bold;">
-    იტვირთება რეცეპტები...
-  </div>
+<body>
+
+  <header id="header-title">
+    <button class="back-btn" id="back-btn" onclick="showList()">‹ უკან</button>
+    <span id="title-text">ნამცხვრები</span>
+  </header>
+
+  <main id="content">
+    <!-- Dynamic Content -->
+  </main>
+
+  <nav id="bottom-nav">
+    <div class="nav-item active" onclick="switchTab(0)">
+      <div class="nav-icon">🎂</div>
+      <div>ნამცხვრები</div>
+    </div>
+    <div class="nav-item" onclick="switchTab(1)">
+      <div class="nav-icon">🥫</div>
+      <div>სოუსები</div>
+    </div>
+    <div class="nav-item" onclick="switchTab(2)">
+      <div class="nav-icon">🫙</div>
+      <div>შესანახები</div>
+    </div>
+  </nav>
+
   <script>
-    window.addEventListener('load', function(ev) {
-      // Download main.dart entrypoint
-      var script = document.createElement('script');
-      script.src = 'https://storage.googleapis.com/flutter_infra_release/releases/stable/web/canvaskit/canvaskit.js';
-      document.body.appendChild(script);
-    });
+    const cakesData = [
+      {
+        title: "პეჩენია",
+        ingredients: [
+          "შაქარი _ 1 ჭიქა",
+          "კვერცხი _ 3 ცალი",
+          "სოდა + ძმრით _ 0,5 ჩაის კოვზი",
+          "ფქვილი _ 2,5-3 ჭიქა",
+          "შაქრის პუდრა _ მოსაყრელად"
+        ],
+        description: "დაჭერით კარაქი, რათა ადვილად დარბილდეს. ჯამში ათქვიფეთ კვერცხი შაქართან ერთად, დაუმატეთ სოდა + ძმრით და კიდევ ათქვიფეთ. შემდეგ დაუმატეთ დარბილებული კარაქი ათქვიფეთ ერთგვაროვანი მასის მიღებამდე. ნელ-ნელა დაუმატეთ ფქვილი! უმატეთ იქამდე, სანამ ცომის თქვეფა მიქსერით არ გაგიჭირდებათ. შემდეგ შეცვალეთ მიქსერი ხის კოვზით, როცა ცომი კარგად გასქელდება გააგრძელეთ მოზელვა ხელით. ცომი დააგუნდავეთ და შეფუთეთ ცელოფანში. შეინახეთ მაცივარში. ღუმელი გაახურეთ 200 გრადუსზე - 35-40 წუთის განმავლობაში აცხვეთ."
+      },
+      {
+        title: "პიშკა",
+        ingredients: [
+          "1 ჭიქა თბილი წყალი",
+          "2 ჩაის კოვზი დროჟი",
+          "1.5 სუფრის კოვზი შაქარი",
+          "1.5 ჭიქა ფქვილი",
+          "1 საათი გავაჩეროთ"
+        ]
+      },
+      {
+        title: "კექსი",
+        ingredients: [
+          "4 ცალი კვერცხი",
+          "ნახევარი ბანკა მაწონი (სოდა)",
+          "2 ჭიქა შაქარი",
+          "ნახევარი პაჩკა მარგარინი",
+          "ფქვილი თვალით",
+          "კაკაო",
+          "ქიშმიში"
+        ],
+        description: "გამოვაცხოთ ნელ პარზე ცხიმწასმულ ყალიბში."
+      },
+      {
+        title: "მოხარშული კრემი",
+        ingredients: [
+          "1 ლიტრი რძე",
+          "1 ჭიქა პურის ფქვილი",
+          "2 ჭიქა შაქარი"
+        ]
+      },
+      {
+        title: "კაროლინა",
+        ingredients: [
+          "6 კვერცხის გული",
+          "2 ჩაის ჭიქა შაქარი",
+          "200 გრამი ცხიმი გამდნარი",
+          "2 ჭიქა მაწონი",
+          "სოდა ძმრით",
+          "ფქვილი ზომა ნაზი (გავყოთ 4 ნაწილად, ვაცხობთ ცხიმწასმულ კალკაზე)"
+        ],
+        description: "6 კილოგრამი ცილა, 1 ჩაის ჭიქა შაქარი გავაკეთოთ ბეზე, 4-5 ვაშლი გახეხილი, 1 ლიმონი გახეხილი, მოხარშული კრემი ნახევარი ლიტრი."
+      },
+      {
+        title: "მინანქარი",
+        ingredients: [
+          "1 ჭიქა შაქარი",
+          "3 კოვზი კაკაო",
+          "1 კოვზი რძე",
+          "100 გრამი ცხიმი",
+          "1 სუფრის კოვზი ზეთი"
+        ],
+        description: "2 ადგილზე კრემი, ერთ ადგილზე ბეზე, ზევიდან მინანქარი. კრემი: მოხარშული ნახ. ლიტ. ნახ. ჭ. პურისფქვილი, 1 ჭიქა შაქარი."
+      },
+      {
+        title: "ნამცხვარი \"მერ\"",
+        ingredients: [
+          "კვერცხი _ 10",
+          "ჭიქა შაქარი _ 3.5",
+          "ცხიმი გამდნარი და გაცივებული _ 200 გრამი",
+          "მაწონი _ 1 ქილა"
+        ],
+        description: "2 სუფრის კოვზი სოდა, ცოტა მარილი, ვუშვებით კაკაოს გაცივებამდე, 2 ც. ვანილი, ფქვილი _ 4-6 ჭიქამდე, 2 ფენა + მესამე მოსაყრელად."
+      },
+      {
+        title: "კრემი",
+        ingredients: [
+          "2ც სგუშონი _ მოხარშული",
+          "400 გრამი ცხიმი",
+          "ყავა 2 სუფრის კოვზი"
+        ]
+      },
+      {
+        title: "ჩიტის რძე",
+        ingredients: [
+          "10 კვერცხის გული",
+          "2.5 ჭიქა შაქარი",
+          "ნახევარი ბანკა მაწონი",
+          "1 ჩაის კოვზი სოდა",
+          "პურის ფქვილი თვალით"
+        ],
+        extra: [
+          { title: "ბეზე", ingredients: ["10 კვ. ცილა", "2 ჭ. შაქარი"] },
+          { description: "გამომცხვარ გულზე დავაჯენთ ბეზეს და დავასხამთ მინანქარს." }
+        ]
+      },
+      {
+        title: "პასკა (1 პორცია)",
+        ingredients: [
+          "20 ცალი კვერცხი",
+          "1 კილოგრამი შაქარი + 1 ჭიქა მაწონი ან სმეტანა",
+          "1 პაჩკა დროჟი",
+          "2 ცალი მარგარინი",
+          "3 კაკალი ილი, ჯაოზი 1 ჩ.კ.",
+          "1.5 ლიტრი რძე",
+          "3 ცალი ვანილი + 3 ცალი ლიმონი",
+          "4.5 კგ პურის ფქვილი",
+          "2 ჭიქა ზეთი",
+          "2 პ. ქიშმიში"
+        ],
+        extra: [
+          { titleRed: "1 ეტაპი", description: "დროჟი 1 ლიტრი რძე და 1 ჭიქა შაქარი. ამოვიყვანოთ. ცოტა ფქვილი რომ ამოვა + დანარჩენი რძე გამდნარი მარგარინი + კარგად გათქვეფილი კვერცხი + მაწონი და დანარჩენი მოვცომოთ დარჩენილი ფქვილით + ქიშმიში მესამედ ჩავდებთ." }
+        ]
+      },
+      {
+        title: "ქადა",
+        ingredients: [
+          "2 პაჩკა მარგარინი",
+          "1 ქილა მაწონი",
+          "4 ცალი კვერცხი",
+          "სოდა"
+        ]
+      },
+      {
+        title: "გული",
+        ingredients: [
+          "2 ჭიქა შაქარი",
+          "2 ჭიქა პურის ფქვილი",
+          "1 პ. მარგარინი"
+        ]
+      },
+      {
+        title: "სნიკერსი",
+        ingredients: [
+          "4 კვერცხის გული",
+          "300 გრამი მარგარინი",
+          "2 ჭიქა შაქარი",
+          "სოდა ძმრით და ვანილი",
+          "რასაც შეიზელს პურის ფქვილს (6-7ჭ)",
+          "ბეზე: 8 კვერცხის ცილა + 3ჭ. შაქარი"
+        ],
+        extra: [
+          { title: "კრემი", ingredients: ["2ც. მოხარშული მალაკო", "500 გრამი კარაქი + ვანილი"] }
+        ],
+        description: "მოვზილოთ ცომი + მასას გავყოფთ 3 ნაწილად. ცომი უნდა იყოს ფაფუკი. თითოეული გავაბრტყელოთ ფქვილოვანი ხელით ცალ-ცალკე თბილ ცხიმწასმულ ჟარონაზე. თავზე გადავუსვათ ასევე სამ ნაწილად გაყოფილი ბეზე და შევდგათ ძალიან დაბალ პარზე დაახლოებით 40 წუთი. მოვაყაროთ ნიგოზი ან მიწის თხილი. მოვასხათ მინანქარი. ფენებს დავაშხუროთ ოდნავ ძალიან ცოტა არაყი ან სპირტი."
+      },
+      {
+        title: "პასკა (II)",
+        ingredients: [
+          "10 კვერცხი",
+          "1 კილოგრამი შაქარი",
+          "300 გრამი კარაქი",
+          "ნახევარი კილოგრამი მაწონი",
+          "ნახევარი ლიტრი რძე",
+          "ქიშმიში",
+          "1 ჭიქა ზეთი",
+          "ილი, ჯაოზი _ ვანილი",
+          "ფქვილი 3 კილოგრამი",
+          "წინასწარ საფუარი: 1 პ. დროჟი, 2 კოვზი შაქარი, 2 ჭ. ზეთი, ცოტა ფქვილი"
+        ]
+      },
+      {
+        title: "ნაპოლეონი",
+        ingredients: [
+          "10 ცალი კვერცხი",
+          "2 პ. მარგარინი",
+          "ცოტა მარილი",
+          "1.5 ჭიქა წყალი",
+          "პურისფქვილი მაგარი ცომი მოვცომოთ"
+        ],
+        description: "1 ცალი კვერცხი + 100 გრამი გამდნარი მარგარინი + 1.5 ჭიქა წყალი + მარილი + პურისფქვილი მოვცომთ მაგარი ცომი, გავაბრტყელოთ და გადავუსვათ მარგარინი, გადავკეცოთ და გავყოთ 3 ნაწილად + (0.5 მოსაფშ) შევდოთ მაცივარში 20 წთ შემდეგ კიდევ გავაბრტყელოთ 20 წუთი. კიდევ გავაბრყელოთ შევდოთ კიდევ 20 წუთი შემდეგ ცხელ ღუმელში გამოვაცხოთ."
+      },
+      {
+        title: "ტარტალეტკა",
+        ingredients: [
+          "3 კვერცხი",
+          "3 ჭიქა შაქარი",
+          "300 გრამი კარაქი",
+          "6 ჭიქა ფქვილი",
+          "1 ჩაის კოვზი სოდა + ძმარი"
+        ]
+      },
+      {
+        title: "იდიალი",
+        ingredients: [
+          "6 ცალი კვერცხი",
+          "1 ჭიქა შაქარი",
+          "3 ს.კ. თაფლი",
+          "1 ჩ. ჭ ნიგოზი",
+          "1 ჩ. კ. სოდა ძმრით",
+          "2 ჩ. ჭ. ფქვილი"
+        ],
+        extra: [
+          { title: "II ფენა", description: "ცხელ ჟარონაზე ცხიმწასმულ კალკაზე, 300 გრამი კარაქი + 2 მოხარშული სგუშონი." }
+        ]
+      },
+      {
+        title: "სამარხვო ნამცხვარი",
+        ingredients: [
+          "1.5 ჩ. ჭ. პავიდლო",
+          "1.5 ჩ.ჭ. წყალი ან ლიმონათი",
+          "1.5 ჩ.ჭ. შაქარი",
+          "3 სტ/კ თაფლი",
+          "1 ჩ.კ. სოდა ძმრით",
+          "ნახევარი ჩ.ჭ. ზეთი",
+          "4 ჩ.ჭ. პურის ფქვილი",
+          "ვანილი",
+          "იგივე მეორე ფენა"
+        ]
+      },
+      {
+        title: "ჟელატინი",
+        description: "200 გრამი ჟელატინი დავალბოთ 4 ჩ/ჭ წყალში (2სთ).",
+        extra: [
+          { description: "ამ მასას გავყოფთ 3 ტოლ ნაწილად, პირველ ნაწილს + 3 ჩ/ჭ წყალი + 2.5 ჩ/ჭ შაქარი + ფრი არომატი + ვანილი წამოვადუღოთ დაბალ ცეცხლზე 2-3 წუთით." },
+          { description: "ასევე მომზადდება მეორე და მესამე ნაწილიც." }
+        ]
+      },
+      {
+        title: "ფუნთუშა",
+        ingredients: [
+          "1 ჩ.ჭ. რძე",
+          "1 ჩ.ჭ შაქარი",
+          "10 გრამი დროჟი",
+          "100 გრამი კარაქი (გამდნარი)",
+          "2 ცალი კვერცხის გული",
+          "ვანილი",
+          "მარილი"
+        ],
+        description: "ფქვილი იმდენი, რომ ნაზი ცომი მივიღოთ.\n\nმომზადება: თბილ რძეში ჩავყაროთ დროჟი, 2ს.კ. შაქარი და ცოტა ფქვილი, დავაყოვნოთ 15 წუთი. შემდეგ გავუკეთოთ დანარჩენი ზემოთ ჩამოთვლილი ინგრედიენტები, ბოლოს შევაზილოთ ფქვილი, ზეთში მოვაგუნდავოთ და დავასვენოთ. კარგად რომ ამოვა, თავზე გადავუსვათ კვერცხის გული და ცოტა მაწონი ერთმანეთში გადარეული. გამოვაცხოთ 200 გრადუსზე დაახლოებით 20 წუთი."
+      },
+      {
+        title: "ზებრა",
+        ingredients: [
+          "6 ცალი კვერცხი",
+          "2 ჭ. შაქარი",
+          "1 პაჩკა (200 გრამი) კარაქი ან მარგარინი",
+          "1 ქილა მაწონი",
+          "1 ჩ.კ. სოდა",
+          "5 ჭ. ფქვილი _ არაჟნის სისქის უნდა იყოს მასა",
+          "0.25 გრამი კაკაო",
+          "ცომი გაყავი შუაში - ნახევარს კაკაო უქენი, ნახევარი თეთრი",
+          "ვანილი 2 ცალი"
+        ]
+      },
+      {
+        title: "კულიჩი",
+        ingredients: [
+          "10 კვერცხი",
+          "1200 გრამი შაქარი",
+          "3 კგ ფქვილი",
+          "საფუარი ნახევარზე ცოტა მეტი",
+          "1 ლიტრი რძე",
+          "250 გრამი მარგარინი",
+          "250 გრამი კარაქი",
+          "1 ჭ. ზეთი",
+          "300 გრამი შავი ქიშმიში",
+          "ილი + ჯაოზი - 2-2 ლარის"
+        ],
+        description: "ნახევარი ლიტრა თბილ რძეში გახსენით საფუარი + 6 ს/კ შაქარი + 1 ჩ/კ შაქარი დავუმატოთ რომ კარგად აფუვდეს. მეორე ნახ/ლ თბილ რძეში გახსენით ცხიმი: მარგარინი, კარაქი, ზეთი.\n\nცალკე 10 კვერცხის ცილა კარგად ამოიყვანეთ + 10ს/კ შაქარი, მარილი მწიკვი და აურიეთ. 10 კვ. გულისგან და დარჩენილი შაქრისგან ვაკეთებთ გოგლი-მოგლს.\n\nცალკე 3 კგ ფქვილს + საფუარი + ცხიმი + კვერცხიანი მასა + დარჩენილი ნახ/ჭ ზეთი და მოზილეთ. ამოსასვლელად საჭიროა 6 სთ.",
+        extra: [
+          { description: "დილით ჩაზილეთ + ქიშმიში, ილი, ჯაოზი." },
+          { description: "ცომს ფორმაში ჩავდებთ, ვაჩერებთ 6 სთ. გამოვაცხოთ გახურებულ 150 გრადუსზე 1 საათის შემდეგ." }
+        ]
+      },
+      {
+        title: "პასკა (III)",
+        ingredients: [
+          "10ც. კვერცხი",
+          "600 გრამი კარაქი",
+          "1 ლიტრი რძე",
+          "10 ცალი ვანილი",
+          "ილი, ჯაოზი 2 ლარის",
+          "3 კგ ფქვილი",
+          "1 ჩ.ჭ. ზეთი",
+          "შაქარი 9 ჩ.ჭ.",
+          "ქიშმიში 300 გრამი",
+          "დროჟი 1 პაჩკა"
+        ],
+        description: "ავიღებთ კვერცხს და შაქარს, ვთქვიფავთ. 600 გრამი კარაქი გამდნარი და გაგრილებული. 1 ჩ/ჭ ზეთი + (საფუარი: ნახ. ლ. რძეში გავქნით 1 პ. დროჟის) + რძე, პურისფქვილი, ილი, ჯაოზი + ვანილი და მოვცომავთ."
+      },
+      {
+        title: "ბრაუნი",
+        ingredients: [
+          "5 კვერცხი",
+          "3 ჩ.ჭ. შაქარი",
+          "3 კაკაო",
+          "0.5 მაწონი",
+          "3 ჩ/კ სოდა ძმრით",
+          "9 ს/კ ზეთი",
+          "2 ვანილი",
+          "4 ჩ/ჭ ფქვილი (ნაწილად გავყოთ)"
+        ],
+        extra: [
+          { title: "კრემი", ingredients: ["2 მალაკო მოხარშული", "500 გრამი კარაქი", "2 კაკაო", "8 ს/კ შაქარი", "1 ვანილი"], description: "ადუღებამდე მივიყვანოთ." }
+        ]
+      },
+      {
+        title: "ჩურჩხელა (200 ცალი)",
+        ingredients: [
+          "25 ლიტრა წვენი",
+          "30 ჭ. მჭადისფქვილი",
+          "2 ჭიქა ნახევარი პურისფქვილი",
+          "3 სუფრის კოვზი ლიმონმჟავა"
+        ]
+      },
+      {
+        title: "ნამცხვარი (კაკლები)",
+        ingredients: [
+          "200 გრამი ოთახის ტემპერატურის კარაქი",
+          "100 გრამი შაქრის პუდრა",
+          "ვანილი",
+          "2ც კვერცხი",
+          "მარილი",
+          "460 გრამი ფქვილი",
+          "1 ჩ.კ. გამაფხვიერებელი"
+        ],
+        description: "დავასვენოთ მაცივარში 30 წუთი.",
+        extra: [
+          { ingredients: ["1 ქილა მალაკო მოხარშული"] }
+        ]
+      },
+      {
+        title: "ცხვარი",
+        ingredients: [
+          "კვერცხი 3ცალი",
+          "შაქარი 2 ჭიქა",
+          "კარაქი 100 გრამი",
+          "არაჟანი 200 გრამი",
+          "ფქვილი 3 ჭიქა",
+          "ქიშმიში",
+          "ლიმონის ცედრა"
+        ],
+        description: "ავთქვიფოთ კვერცხი და შაქარი, შემდეგ დავუმატოთ არაჟანი, ვანილი, სოდა, კარაქი და ფქვილი, ბოლოს ქიშმიში ან ცუკატი, ასევე ლიმონის ცედრა. მოვასხათ ფორმაში და გამოვაცხოთ 150 გრადუსზე."
+      },
+      {
+        title: "ტარტის კრემი",
+        ingredients: [
+          "500 მლ. რძე",
+          "3 ს/კ ფქვილი",
+          "1 კვერცხი",
+          "მწიკვი მარილი",
+          "ვანილი",
+          "150 გრამი შაქარი"
+        ],
+        description: "დაბალ ცეცხლზე მოვხარშოთ აღებიდან 2 წუთი, გავაცივოთ და დავამატოთ 100 გრამი კარაქი."
+      }
+    ];
+
+    const tabTitles = ["ნამცხვრები", "სოუსები", "შესანახები"];
+    let currentTab = 0;
+
+    function renderList() {
+      document.getElementById("back-btn").style.display = "none";
+      document.getElementById("title-text").innerText = tabTitles[currentTab];
+      
+      const content = document.getElementById("content");
+      
+      if (currentTab !== 0) {
+        content.innerHTML = `<div style="text-align:center; padding-top:40px; color:#888;">რეცეპტები ჯერ არ არის დამატებული.</div>`;
+        return;
+      }
+
+      let html = "";
+      cakesData.forEach((recipe, index) => {
+        html += `<div class="card" onclick="showDetail(${index})">${recipe.title}</div>`;
+      });
+      content.innerHTML = html;
+    }
+
+    function showDetail(index) {
+      const recipe = cakesData[index];
+      document.getElementById("back-btn").style.display = "block";
+      document.getElementById("title-text").innerText = recipe.title;
+
+      let html = `
+        <div class="photo-box">
+          <div style="font-size:32px;">📷</div>
+          <div style="font-size:14px; margin-top:4px;">ფოტო (სურვილისამებრ)</div>
+        </div>
+      `;
+
+      if (recipe.ingredients && recipe.ingredients.length > 0) {
+        html += `<div class="section-title">ინგრედიენტები</div><ul>`;
+        recipe.ingredients.forEach(item => {
+          html += `<li>${item}</li>`;
+        });
+        html += `</ul>`;
+      }
+
+      if (recipe.description) {
+        html += `<div class="section-subtitle">როგორ მზადდება</div><p>${recipe.description}</p>`;
+      }
+
+      if (recipe.extra) {
+        recipe.extra.forEach(section => {
+          if (section.title) {
+            html += `<div class="section-subtitle">${section.title}</div>`;
+          }
+          if (section.titleRed) {
+            html += `<div class="section-subtitle-red">${section.titleRed}</div>`;
+          }
+          if (section.ingredients) {
+            html += `<ul>`;
+            section.ingredients.forEach(item => {
+              html += `<li>${item}</li>`;
+            });
+            html += `</ul>`;
+          }
+          if (section.description) {
+            html += `<p>${section.description}</p>`;
+          }
+        });
+      }
+
+      document.getElementById("content").innerHTML = html;
+      document.getElementById("content").scrollTop = 0;
+    }
+
+    function showList() {
+      renderList();
+    }
+
+    function switchTab(index) {
+      currentTab = index;
+      const navItems = document.querySelectorAll(".nav-item");
+      navItems.forEach((item, idx) => {
+        if (idx === index) {
+          item.classList.add("active");
+        } else {
+          item.classList.remove("active");
+        }
+      });
+      renderList();
+    }
+
+    // Initial Load
+    renderList();
   </script>
 </body>
 </html>
