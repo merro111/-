@@ -98,7 +98,7 @@
       margin-bottom: 2px;
     }
     
-    /* Cropped Photo Container Styles */
+    /* Photo Container Styles - Cleaned without shadow */
     .photo-gallery {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -110,7 +110,7 @@
       height: 180px;
       border-radius: 16px;
       overflow: hidden;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      box-shadow: none; /* Shadow removed */
       background: #E0E0E0;
     }
     .photo-crop-container img {
@@ -126,6 +126,7 @@
     .img-pan {
       object-position: 50% 25%;
       transform: scale(1.2);
+      filter: contrast(1.08) brightness(1.05); /* Slight adjustment to balance top lighting */
     }
 
     .photo-placeholder {
@@ -211,8 +212,8 @@
       {
         title: "პეროგი",
         images: [
-          { url: "1000027166.jpg", class: "img-slices" },
-          { url: "1000027162.heic", class: "img-pan" }
+          { url: "1000027167.heic", class: "img-slices" },
+          { url: "1000027162_2.heic", class: "img-pan" }
         ],
         ingredients: [
           "6 კვერცხი",
