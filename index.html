@@ -823,20 +823,37 @@
     const tabDatasets = [cakesData, saucesData, preservesData];
     let currentTab = 0;
 
-   function renderList() {
-      const headerTitle = document.getElementById("header-title");
+function renderList() {
       const titleText = document.getElementById("title-text");
       const content = document.getElementById("content");
 
-      if (headerTitle) headerTitle.style.display = "block";
-      if (titleText) titleText.innerText = tabTitles[currentTab] || "რეცეპტები";
+      if (titleText && typeof tabTitles !== "undefined") {
+        titleText.innerText = tabTitles[currentTab] || "რეცეპტები";
+      }
 
       document.getElementById("back-btn").style.display = "none";
       
       const currentDataset = tabDatasets[currentTab];
 
       if (!currentDataset || currentDataset.length === 0) {
-        content.innerHTML = `<div style="text-align:center; padding-top:40px; color:#888;">რეცეპტები ჯერ არ არის დამატებული.</div>`;
+        content.innerHTML = `
+          <div style="text-align:center; padding-top:40px; color:#888;">
+            რეცეპტები ჯერ არ არის დამატებული.
+          </div>
+          <div style="margin-top: 30px; text-align: center; padding: 15px 0;">
+              <a href="ask-ai.html" style="
+                  background-color: var(--primary, #e63946);
+                  color: white;
+                  text-decoration: none;
+                  font-size: 18px;
+                  font-weight: bold;
+                  padding: 12px 24px;
+                  border-radius: 30px;
+                  display: inline-block;
+                  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+              ">🤖 ჰკითხე AI ასისტენტს</a>
+          </div>
+        `;
         return;
       }
 
