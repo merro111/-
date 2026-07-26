@@ -819,67 +819,120 @@
       }
     ];
 
-    const tabTitles = ["ნამცხვრები", "სოუსები", "შესანახები"];
-    const tabDatasets = [cakesData, saucesData, preservesData];
-    let currentTab = 0;
+    const tabTitles = ["ნამცხვრები", "სოუსები", "შესანახები", "AI ასისტენტი"];
+const tabDatasets = [cakesData, saucesData, preservesData, []];
+let currentTab = 0;
+
+const GEMINI_API_KEY = "AQ.Ab8RN6Jqo_C-LidC2_JkCYCMYrn6Aoab5ympDxWh1zy_fWhqtg";
 
 function renderList() {
-      const titleText = document.getElementById("title-text");
-      const content = document.getElementById("content");
+  const titleText = document.getElementById("title-text");
+  const content = document.getElementById("content");
 
-      if (titleText && typeof tabTitles !== "undefined") {
-        titleText.innerText = tabTitles[currentTab] || "რეცეპტები";
-      }
+  if (titleText && typeof tabTitles !== "undefined") {
+    titleText.innerText = tabTitles[currentTab] || "რეცეპტები";
+  }
 
-      document.getElementById("back-btn").style.display = "none";
-      
-      const currentDataset = tabDatasets[currentTab];
+  document.getElementById("back-btn").style.display = "none";
 
-      if (!currentDataset || currentDataset.length === 0) {
-        content.innerHTML = `
-          <div style="text-align:center; padding-top:40px; color:#888;">
-            რეცეპტები ჯერ არ არის დამატებული.
+  // მე-4 ტაბი: AI ასისტენტი
+  if (currentTab === 3) {
+    content.innerHTML = `
+      <div style="max-width: 600px; margin: 0 auto; padding: 10px;">
+        <div id="chat-box" style="height: 380px; overflow-y: auto; background: #fff; border-radius: 16px; padding: 15px; border: 1px solid #e0e0e0; margin-bottom: 12px; display: flex; flex-direction: column; gap: 10px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">
+          <div style="background: #f1f3f5; color: #212529; padding: 12px 16px; border-radius: 18px; align-self: flex-start; max-width: 85%; font-size: 15px; line-height: 1.4;">
+            გამარჯობა! 👩‍🍳 მე ვარ თქვენი კულინარიული AI ასისტენტი. 
+            <br><br>
+            შეგიძლიათ მკითხოთ ნებისმიერი რეცეპტი, ინგრედიენტების ჩანაცვლება ან რჩევა კერძის მომზადებაზე!
           </div>
-          <div style="margin-top: 30px; text-align: center; padding: 15px 0;">
-              <a href="ask-ai.html" style="
-                  background-color: var(--primary, #e63946);
-                  color: white;
-                  text-decoration: none;
-                  font-size: 18px;
-                  font-weight: bold;
-                  padding: 12px 24px;
-                  border-radius: 30px;
-                  display: inline-block;
-                  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-              ">🤖 ჰკითხე AI ასისტენტს</a>
-          </div>
-        `;
-        return;
-      }
-
-      let recipesHtml = "";
-      currentDataset.forEach((recipe, index) => {
-        recipesHtml += `<div class="card" onclick="showDetail(${index})">${recipe.title}</div>`;
-      });
-
-      let aiButtonHtml = `
-        <div style="margin-top: 30px; text-align: center; padding: 15px 0;">
-            <a href="ask-ai.html" style="
-                background-color: var(--primary, #e63946);
-                color: white;
-                text-decoration: none;
-                font-size: 18px;
-                font-weight: bold;
-                padding: 12px 24px;
-                border-radius: 30px;
-                display: inline-block;
-                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            ">🤖 ჰკითხე AI ასისტენტს</a>
         </div>
-      `;
+        
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="ai-input" placeholder="ჰკითხეთ AI-ს ქართულად..." style="flex: 1; padding: 12px 16px; border-radius: 25px; border: 1px solid #ccc; outline: none; font-size: 15px;" onkeypress="if(event.key==='Enter') sendAiMessage()">
+          <button onclick="sendAiMessage()" style="background: var(--primary, #e63946); color: white; border: none; padding: 12px 22px; border-radius: 25px; font-weight: bold; cursor: pointer; font-size: 15px;">გაგზავნა</button>
+        </div>
+      </div>
+    `;
+    return;
+  }
 
-      content.innerHTML = recipesHtml + aiButtonHtml;
+  // ჩვეულებრივი ტაბები (1, 2, 3)
+  const currentDataset = tabDatasets[currentTab];
+
+  if (!currentDataset || currentDataset.length === 0) {
+    content.innerHTML = `<div style="text-align:center; padding-top:40px; color:#888;">რეცეპტები ჯერ არ არის დამატებული.</div>`;
+    return;
+  }
+
+  let recipesHtml = "";
+  currentDataset.forEach((recipe, index) => {
+    recipesHtml += `<div class="card" onclick="showDetail(${index})">${recipe.title}</div>`;
+  });
+
+  content.innerHTML = recipesHtml;
+}
+
+// Gemini AI Chat ფუნქცია
+async function sendAiMessage() {
+  const input = document.getElementById("ai-input");
+  const chatBox = document.getElementById("chat-box");
+  const text = input.value.trim();
+  if (!text) return;
+
+  chatBox.innerHTML += `
+    <div style="background: var(--primary, #e63946); color: white; padding: 12px 16px; border-radius: 18px; align-self: flex-end; max-width: 85%; font-size: 15px; line-height: 1.4;">
+      ${text}
+    </div>
+  `;
+  input.value = "";
+  chatBox.scrollTop = chatBox.scrollHeight;
+
+  const loadingId = "loading-" + Date.now();
+  chatBox.innerHTML += `
+    <div id="${loadingId}" style="background: #f1f3f5; color: #6c757d; padding: 12px 16px; border-radius: 18px; align-self: flex-start; max-width: 85%; font-style: italic; font-size: 14px;">
+      ვფიქრობ... 🧠
+    </div>
+  `;
+  chatBox.scrollTop = chatBox.scrollHeight;
+
+  try {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{
+          parts: [{
+            text: `შენ ხარ კულინარიული ასისტენტი. უპასუხე მხიარული და დამხმარე ტონით, გამართული ქართული ენით. კითხვა: ${text}`
+          }]
+        }]
+      })
+    });
+
+    const data = await response.json();
+    let reply = "ბოდიში, პასუხის მიღება ვერ მოხერხდა.";
+    
+    if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
+      reply = data.candidates[0].content.parts[0].text;
+      // მარტივი Markdown formatting-ის გაწმენდა ტექსტისთვის
+      reply = reply.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>');
     }
+
+    document.getElementById(loadingId).remove();
+    chatBox.innerHTML += `
+      <div style="background: #f1f3f5; color: #212529; padding: 12px 16px; border-radius: 18px; align-self: flex-start; max-width: 85%; font-size: 15px; line-height: 1.4;">
+        ${reply}
+      </div>
+    `;
+  } catch (err) {
+    document.getElementById(loadingId).remove();
+    chatBox.innerHTML += `
+      <div style="background: #f8d7da; color: #721c24; padding: 12px 16px; border-radius: 18px; align-self: flex-start; max-width: 85%; font-size: 14px;">
+        კავშირის შეცდომა. სცადეთ მოგვიანებით.
+      </div>
+    `;
+  }
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
 
     function showDetail(index) {
       const recipe = tabDatasets[currentTab][index];
